@@ -3,33 +3,34 @@ class SudokuSolver {
     this.actualPuzzle = "";
   }
   validate(puzzleString) {
-    // Check if puzzleString is 81 characters long
+    // If the puzzleString is not 81 characters long
     if (puzzleString.length !== 81) {
-      return { error: "Expected puzzle to be 81 characters long" }
+      return { error: 'Expected puzzle to be 81 characters long' };
     }
-
-    // Check for invalid characters in puzzleString
+    // Regex for number and dot, and string should be 81 characters long    
     let regex = /^[0-9.]{81}$/;
     if (!regex.test(puzzleString)) {
-      return { error: "Invalid characters in puzzle" };
-    }else {
+      return { error: 'Invalid characters in puzzle' };
+    } else {
       return true;
     }
   }
 
   checkRowPlacement(puzzleString, row, column, value) {
-    let checkedRow = puzzleString.slice(row * 9, row * 9 + 9);
-
-    // Check if the value is already in the cell
-    if (checkedRow[column] === value) {
+    let studiedRow = puzzleString.slice(row * 9, row * 9 + 9);
+    
+    // If the value is already in the cell
+    if (studiedRow[column] === value) {
       return true;
     }
 
-    // Check if the value is in the row and not in the cell
-    if (checkedRow.includes(value) && checkedRow[column] !== value) {
+    // If value present in the row and the value is not in the cell
+    if (studiedRow.includes(value) && studiedRow[column] !== value) {
       return false;
-    // Check if already filled
-    }else if (!checkedRow[column] === ".") {
+    } 
+
+    // If the location is already filled
+    else if (!studiedRow[column] === '.') {
       return false;
     }
 
@@ -37,21 +38,23 @@ class SudokuSolver {
   }
 
   checkColPlacement(puzzleString, row, column, value) {
-    let checkedCol = "";
+    let studiedCol = '';
     for (let i = 0; i < 9; i++) {
-      checkedCol += puzzleString[i * 9 + column];
+      studiedCol += puzzleString[i * 9 + column];
     }
 
-    // Check if the value is already in cell
-    if (checkedCol[row] === value) {
+    // If the value is already in the cell
+    if (studiedCol[row] === value) {
       return true;
-    }
+    } 
 
-    // Check if value is in the column but not the cell
-    if (checkedCol.includes(value) && checkedCol[row] !== value) {
+    // If value present in the column  and the value is not in the cell
+    if (studiedCol.includes(value)  && studiedCol[row] !== value) {
       return false;
-    // Check if already filled
-    }else if (!checkedCol[row] === ".") {
+    } 
+
+    // If the location is already filled
+    else if (!studiedCol[row] === '.') {
       return false;
     }
 
@@ -59,127 +62,143 @@ class SudokuSolver {
   }
 
   checkRegionPlacement(puzzleString, row, column, value) {
-    let checkedRegion = "";
-
-    // Determine region
+    let studiedRegion = '';
+    
+    // Determine the region
     let regionRow = Math.floor(row / 3);
     let regionCol = Math.floor(column / 3);
 
-    // Determine checkedRegion string
+    // Determine the studiedRegion string
     for (let i = regionRow * 3; i < regionRow * 3 + 3; i++) {
       for (let j = regionCol * 3; j < regionCol * 3 + 3; j++) {
-        checkedRegion += puzzleString[i * 9 + j];
+        studiedRegion += puzzleString[i * 9 + j];
       }
     }
-
-    let cell = puzzleString[(row) * 9 + column];
-
-    // Check if value is in cell
+    let cell = puzzleString[(row) * 9 + column ]
+    // If the value is already in the cell
     if (cell === value) {
       return true;
     }
 
-    // Check if value is in region but not in cell
-    if (checkedRegion.includes(value) && cell !== value) {
-      return true;
-    // Check if already filled
-    }else if (!checkedRegion[(row % 3) * 3 + (column % 3)] === ".") {
+    // If value present in the region and the value is not in the cell
+    if (studiedRegion.includes(value) && cell !== value) {
+      return false;
+    } 
+
+    // If the location is already filled
+    else if (!studiedRegion[(row % 3) * 3 + (column % 3)] === ".") {
       return false;
     }
-
     return true;
   }
 
+  // Function to check if the string has unique values
+  isUnique(str) {
+    let set = new Set(str);
+    return str.length === set.size;
+  }
+
   solve(puzzleString) {
-    // Check validity of puzzle
+    // console.log(puzzleString)
+
+    // Check puzzle validity
     if (this.validate(puzzleString) !== true) {
-      console.log("puzzle not valid");
+      console.log("puzzle not valid")
       return false;
     }
 
-    // Check if puzzle stored in actualPuzzle is the same as puzzleString
+    // Check if puzzle stored in the actualPuzzle is the same as the puzzleString, if so, puzzle can not be solved
     if (puzzleString === this.actualPuzzle) {
-      console.log("can't be solved");
+      console.log("can't be solved")
       return false;
     }
 
-    // Check if puzzle is not solved
-    if (puzzleString.includes(".") === true) {
-      // Add the puzzleString to the actualPuzzle
+    // Puzzle is not solved
+    if (puzzleString.includes('.') === true) {
+      // adding this puzzle to the actualPuzzle
       this.actualPuzzle = puzzleString;
 
-      let tempSolution = [];
+      // Create a tempory array to store the possible values
+      let temporarySol = []
+
+      // loop through the puzzle
       for (let i = 0; i < 81; i++) {
-        // If the value is not a dot, add it to tempSolution
-        if (puzzleString[i] !== ".") {
-          tempSolution.push(puzzleString[i]);
-        }else {
-          let possibleVals = [];
+
+        // If the iteration is not a dot, then add the value to the temporary array
+        if (puzzleString[i] !== '.') {
+          temporarySol.push(puzzleString[i]);
+        } 
+        // If the iteration is a dot, then add the possible values to the temporary array
+        else {
+          let possibleValues = [];
+          // loop through the possible values
           for (let j = 1; j <= 9; j++) {
-            // Check if j is a valid possible value
+            // Check if the j value is valid in the location
             if (this.checkRowPlacement(puzzleString, Math.floor(i / 9), i % 9, j.toString()) &&
-            this.checkColPlacement(puzzleString, Math.floor(i / 9), i % 9, j.toString()) &&
-            this.checkRegionPlacement(puzzleString, Math.floor(i / 9), i % 9, j.toString())) {
-              possibleVals.push(j.toString())
+                this.checkColPlacement(puzzleString, Math.floor(i / 9), i % 9, j.toString()) &&
+                this.checkRegionPlacement(puzzleString, Math.floor(i / 9), i % 9, j.toString())) {
+                  possibleValues.push(j.toString())
             }
           }
-          tempSolution.push(possibleVals);
+          temporarySol.push(possibleValues);
         }
       }
 
-      // Loop through tempSolution, if only one possible value, add it to solvedPuzzle
+      // loop through the temporary array and if we have only one possible value, then add it to the solvedPuzzle
       for (let k = 0; k < 81; k++) {
-        if (tempSolution[k].length === 1) {
-          tempSolution[k] = tempSolution[k][0];
-        }else {
-          tempSolution[k] = ".";
+        if (temporarySol[k].length === 1) {
+        temporarySol[k] = temporarySol[k][0];
+        } else {
+          temporarySol[k] = '.';
         }
       }
+    
+      // Now we have a new puzzle
+      let newPuzzle = temporarySol.join("");
+      return this.solve(newPuzzle)
+    }
 
-      let newPuzzle = tempSolution.join("");
-      return this.solve(newPuzzle);
-    }else {
-      console.log("puzzle solved >>", puzzleString);
-
-      // Check if rows are valid
+    // Puzzle is solved
+    else {
+      // Solved puzzle
+      console.log("puzzle solved >>", puzzleString)
+      
+      // Checking if all rows are valid
       for (let i = 0; i < 9; i++) {
         if (!this.isUnique(puzzleString.substr(i * 9, 9))) {
-          console.log("row not valid");
+          console.log("row not valid")
           return false;
         }
       }
-
-      // Check if columns are valid
+      // Checking if all columns are valid
       for (let j = 0; j < 9; j++) {
-        let column = "";
+        let column = '';
         for (let i = 0; i < 9; i++) {
           column += puzzleString[i * 9 + j];
         }
         if (!this.isUnique(column)) {
-          console.log("column not valid");
+          console.log("column not valid")
           return false;
-        }
+        };
       }
-
-      // Check if regions are valid
-      for (let reg = 0; reg < 0; reg++) {
-        let box = "";
+      // Checking if all regions are valid
+      for (let bloc = 0; bloc < 9; bloc++) {
+        let grille = '';
         for (let i = 0; i < 3; i++) {
           for (let j = 0; j < 3; j++) {
-            box += puzzleString[Math.floor(reg / 3) * 27 + i * 9 + (reg % 3) * 3 + j];
+            grille += puzzleString[Math.floor(bloc / 3) * 27 + i * 9 + (bloc % 3) * 3 + j];
           }
         }
-
-        if (!this.isUnique(box)) {
-          console.log("region not valid");
+        if (!this.isUnique(grille)) {
+          console.log("region not valid")
           return false;
         }
       }
-
+      
+      // The puzzle is valid, so we return the solved puzzle
       return puzzleString;
     }
   }
 }
 
 module.exports = SudokuSolver;
-
